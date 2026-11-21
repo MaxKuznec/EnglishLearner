@@ -213,10 +213,277 @@
     speechSynthesis.speak(u);
   }
 
-  // ============ НАВИГАЦИЯ И ЯЗЫК ============
+    // ============ НАВИГАЦИЯ И ЯЗЫК ============
   function applyLang() {
     document.documentElement.lang = S.ui;
     $('uiLang').value = S.ui;
     $('tgtLang').value = S.tgt;
     $('appTitle').textContent = t('title');
-    $('tgtLabel').
+    $('tgtLabel').textContent = t('tgtLabel');
+    $('lblLearned').textContent = t('learned');
+    $('lblScore').textContent = t('score');
+    $('lblTotal').textContent = t('total');
+    renderNav();
+    render();
+    updateStats();
+  }
+
+  function renderNav() {
+    $('nav').innerHTML = TABS.map(k =>
+      `<button class="${k === tab ? 'active' : ''}" onclick="setTab('${k}')">${t('tab_' + k)}</button>`
+    ).join('');
+  }
+
+  function setTab(k) {
+    tab = k;
+    st = {};
+    applyLang();
+  }
+
+  function render() {
+    const map = {
+      flash: renderFlash, quiz: renderQuiz, type: renderType,
+      match: renderMatch, scramble: renderScramble, listen: renderListen
+    };
+    map[tab]();
+  }
+
+  // ============ КАРТОЧКИ ============
+  function renderFlash() {
+    const m = $('main');
+    if (st.i === undefined) st.i = 0;
+    if (st.i >= WORDS.length) {
+      m.innerHTML = `<div class="card"><div class="word">🎉</div>
+        <div class="translation">${t('roundDone')}: ${S.learned.length}/${WORDS.length}</div></div>
+        <div class="row"><button class="btn" onclick="st.i=0;render()">${t('restart')}</button></div>`;
+      return;
+    }
+    const w = WORDS[st.i];
+    st.flipped = false;
+    m.innerHTML = `
+      <div class="progress"><div class="progress-bar" style="width:${st.i / WORDS.length * 100}%"></div></div>
+      <div class="card" id="card" onclick="if(!justSwiped)flip()">
+        <div class="word">${w.en}</div>
+        <div class="translation hidden" id="tr">${w[S.tgt]}</div>
+        <div class="hint" id="hint">${t('tapFlip')}</div>
+      </div>
+      <div class="row">
+        <button class="btn btn-unknown" onclick="flashMark(false)">${t('unknown')}</button>
+        <button class="btn btn-known" onclick="flashMark(true)">${t('known')}</button>
+      </div>
+      <div class="hint dark">${t('swipeHint')}</div>`;
+    bindSwipe($('card'), dir => flashMark(dir));
+  }
+
+  function flip() {
+    st.flipped = true;
+    $('tr').classList.remove('hidden');
+    $('hint').textContent = t('knowIt');
+  }
+
+  function flashMark(known) {
+    if (!st.flipped) { flip(); return; }
+    if (known) { learn(WORDS[st.i].en); addScore(10); }
+    st.i++;
+    render();
+  }
+
+  function bindSwipe(el, cb) {
+    let x0 = null;
+    el.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
+    el.addEventListener('touchend', e => {
+      if (x0 === null) return;
+      const dx = e.changedTouches[0].clientX - x0;
+      x0 = null;
+      if (Math.abs(dx) > 70) {
+        justSwiped = true;
+        setTimeout(() => { justSwiped = false; }, 400);
+        cb(dx > 0);
+      }
+    });
+  }
+
+  // ============ ТЕСТ С ВЫБОРОМ ============
+  function renderQuiz() {
+    const w = pick(WORDS);
+    st.cur = w;
+    st.opts = shuffle([w, ...distractors(w)]);
+    st.answered = false;
+    $('main').innerHTML = `
+      <div class="question">${t('quizQ').replace('{w}', w.en)}</div>
+      <div id="opts">${st.opts.map((o, i) =>
+        `<button class="opt" onclick="answerChoice(${i})">${o[S.tgt]}</button>`).join('')}</div>
+      <div class="row"><button class="btn" onclick="renderQuiz()">${t('next')}</button></div>`;
+  }
+
+  function answerChoice(i) {
+    if (st.answered) return;
+    st.answered = true;
+    const btns = document.querySelectorAll('#opts .opt');
+    const right = st.opts.indexOf(st.cur);
+    if (i === right) {
+      btns[i].classList.add('correct');
+      addScore(15);
+      learn(st.cur.en);
+    } else {
+      btns[i].classList.add('wrong');
+      btns[right].classList.add('correct');
+    }
+  }
+
+  // ============ ВВОД ПЕРЕВОДА ============
+  function renderType() {
+    const w = pick(WORDS);
+    st.cur = w;
+    st.answered = false;
+    $('main').innerHTML = `
+      <div class="question">${t('typeQ').replace('{w}', w[S.tgt])}</div>
+      <input type="text" id="inp" autocomplete="off" autocapitalize="none" spellcheck="false"
+        placeholder="${t('typePh')}" onkeydown="if(event.key==='Enter')typeAction()">
+      <div class="feedback" id="fb"></div>
+      <div class="row">
+        <button class="btn btn-sec" onclick="renderType()">${t('skip')}</button>
+        <button class="btn" id="act" onclick="typeAction()">${t('check')}</button>
+      </div>`;
+  }
+
+  function typeAction() {
+    if (st.answered) { renderType(); return; }
+    const v = $('inp').value.trim().toLowerCase();
+    if (!v) return;
+    st.answered = true;
+    if (v === st.cur.en) {
+      $('fb').innerHTML = `<span class="ok">${t('ok')}</span>`;
+      addScore(15);
+      learn(st.cur.en);
+    } else {
+      $('fb').innerHTML = `<span class="bad">${t('bad')} ${st.cur.en}</span>`;
+    }
+    $('inp').disabled = true;
+    $('act').textContent = t('next');
+  }
+
+  // ============ СОПОСТАВЛЕНИЕ ПАР ============
+  function renderMatch() {
+    const set = shuffle(WORDS).slice(0, 5);
+    st.pairs = set;
+    st.left = shuffle(set);
+    st.right = shuffle(set);
+    st.selE = null;
+    st.selT = null;
+    st.matched = 0;
+    $('main').innerHTML = `
+      <p class="question small">${t('matchHint')}</p>
+      <div class="grid">
+        <div id="colE">${st.left.map((w, i) =>
+          `<button class="tile" data-i="${i}" onclick="matchPick('E',${i})">${w.en}</button>`).join('')}</div>
+        <div id="colT">${st.right.map((w, i) =>
+          `<button class="tile" data-i="${i}" onclick="matchPick('T',${i})">${w[S.tgt]}</button>`).join('')}</div>
+      </div>
+      <div class="feedback" id="fb"></div>`;
+  }
+
+  function matchPick(side, i) {
+    const col = `#col${side}`;
+    const el = document.querySelector(`${col} [data-i="${i}"]`);
+    if (el.classList.contains('done')) return;
+    document.querySelectorAll(`${col} .tile`).forEach(b => b.classList.remove('sel'));
+    el.classList.add('sel');
+    if (side === 'E') st.selE = i; else st.selT = i;
+    if (st.selE === null || st.selT === null) return;
+
+    const eE = document.querySelector(`#colE [data-i="${st.selE}"]`);
+    const eT = document.querySelector(`#colT [data-i="${st.selT}"]`);
+    if (st.left[st.selE] === st.right[st.selT]) {
+      eE.classList.replace('sel', 'done');
+      eT.classList.replace('sel', 'done');
+      learn(st.left[st.selE].en);
+      addScore(5);
+      st.matched++;
+      if (st.matched === st.pairs.length) {
+        $('fb').innerHTML = `<span class="ok">${t('roundDone')}</span>
+          <div class="row"><button class="btn" onclick="renderMatch()">${t('restart')}</button></div>`;
+      }
+    } else {
+      eE.classList.add('wrong');
+      eT.classList.add('wrong');
+      setTimeout(() => { [eE, eT].forEach(x => x.classList.remove('wrong', 'sel')); }, 600);
+    }
+    st.selE = null;
+    st.selT = null;
+  }
+
+  // ============ СБОРКА СЛОВА ИЗ БУКВ ============
+  function renderScramble() {
+    const w = pick(WORDS);
+    let order = shuffle([...w.en]);
+    while (order.join('') === w.en && w.en.length > 1) order = shuffle(order);
+    st.cur = w;
+    st.letters = order;
+    st.typed = [];
+    $('main').innerHTML = `
+      <div class="question">${w[S.tgt]}</div>
+      <p class="hint dark">${t('scrHint')}</p>
+      <div class="answer" id="ans"></div>
+      <div class="letters">${order.map((c, i) =>
+        `<button class="tile" data-i="${i}" onclick="scrPick(${i})">${c}</button>`).join('')}</div>
+      <div class="feedback" id="fb"></div>
+      <div class="row">
+        <button class="btn btn-sec" onclick="scrClear()">${t('clear')}</button>
+        <button class="btn" onclick="scrCheck()">${t('check')}</button>
+      </div>`;
+  }
+
+  function scrPick(i) {
+    const el = document.querySelector(`#main .letters [data-i="${i}"]`);
+    if (el.classList.contains('done')) return;
+    el.classList.add('done');
+    st.typed.push(i);
+    showAns();
+  }
+
+  function showAns() {
+    $('ans').textContent = st.typed.map(j => st.letters[j]).join('');
+  }
+
+  function scrClear() {
+    st.typed = [];
+    showAns();
+    $('fb').textContent = '';
+    document.querySelectorAll('#main .letters .tile').forEach(b => b.classList.remove('done'));
+  }
+
+  function scrCheck() {
+    const v = st.typed.map(j => st.letters[j]).join('');
+    if (v === st.cur.en) {
+      $('fb').innerHTML = `<span class="ok">${t('ok')}</span>`;
+      addScore(10);
+      learn(st.cur.en);
+      setTimeout(() => { if (tab === 'scramble') renderScramble(); }, 900);
+    } else {
+      $('fb').innerHTML = `<span class="bad">${t('bad')} ${st.cur.en}</span>`;
+    }
+  }
+
+  // ============ АУДИРОВАНИЕ ============
+  function renderListen() {
+    const w = pick(WORDS);
+    st.cur = w;
+    st.opts = shuffle([w, ...distractors(w)]);
+    st.answered = false;
+    $('main').innerHTML = `
+      <button class="speak" onclick="speak('${w.en}')">🔊 ${t('speak')}</button>
+      <div id="opts">${st.opts.map((o, i) =>
+        `<button class="opt" onclick="answerChoice(${i})">${o[S.tgt]}</button>`).join('')}</div>
+      <div class="row"><button class="btn" onclick="renderListen()">${t('next')}</button></div>`;
+    speak(w.en);
+  }
+
+  // ============ ИНИЦИАЛИЗАЦИЯ ============
+  $('uiLang').onchange = e => { S.ui = e.target.value; save(); applyLang(); };
+  $('tgtLang').onchange = e => { S.tgt = e.target.value; save(); st = {}; applyLang(); };
+  applyLang();
+</script>
+</body>
+</html>
+
