@@ -1,16 +1,17 @@
 package com.example.englishlearner;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-
-import androidx.appcompat.app.AppCompatActivity;
+import android.webkit.WebViewClient;
 
 import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity implements TextToSpeech.OnInitListener {
+public class MainActivity extends Activity {
 
     private WebView webView;
     private TextToSpeech tts;
@@ -20,38 +21,32 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        tts = new TextToSpeech(this, status -> {
+            if (status == TextToSpeech.SUCCESS) {
+                tts.setLanguage(Locale.US);
+                ttsReady = true;
+            }
+        });
+
         webView = new WebView(this);
         setContentView(webView);
 
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
-        settings.setAllowFileAccess(true);
 
-        webView.addJavascriptInterface(new TtsBridge(), "Android");
+        webView.addJavascriptInterface(new TtsBridge(), "AndroidTTS");
+        webView.setWebViewClient(new WebViewClient());
+        webView.setWebChromeClient(new WebChromeClient());
         webView.loadUrl("file:///android_asset/index.html");
-
-        tts = new TextToSpeech(this, this);
-    }
-
-    @Override
-    public void onInit(int status) {
-        if (status == TextToSpeech.SUCCESS) {
-            int result = tts.setLanguage(Locale.US);
-            ttsReady = result != TextToSpeech.LANG_MISSING_DATA
-                    && result != TextToSpeech.LANG_NOT_SUPPORTED;
-        }
     }
 
     public class TtsBridge {
         @JavascriptInterface
-        public void speak(final String text) {
-            runOnUiThread(() -> {
-                if (ttsReady) {
-                    tts.stop();
-                    tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "word");
-                }
-            });
+        public void speak(String text) {
+            if (ttsReady) {
+                tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "word");
+            }
         }
     }
 
