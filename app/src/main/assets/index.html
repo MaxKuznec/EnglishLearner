@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#667eea">
+<title>English Learner</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: Roboto, 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
+  html, body { min-height: 100%; }
+  body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; justify-content: center; }
+  .app { background: #fff; width: 100%; max-width: 560px; min-height: 100vh; display: flex; flex-direction: column; }
+
+  header { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; padding: 14px 14px 12px; }
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .top + .top { margin-top: 10px; }
+  h1 { font-size: 20px; }
+  .top label { font-size: 14px; }
+  select { padding: 8px; border-radius: 8px; border: none; font-size: 15px; background: #fff; color: #333; min-height: 40px; }
+  .stats { display: flex; justify-content: space-around; margin-top: 12px; background: rgba(255,255,255,.18); border-radius: 12px; padding: 10px; }
+  .stat-value { font-size: 20px; font-weight: bold; text-align: center; }
+  .stat-label { font-size: 11px; opacity: .9; text-align: center; }
+
+  nav { display: flex; overflow-x: auto; gap: 6px; padding: 10px; background: #f0f0f0; scrollbar-width: none; }
+  nav::-webkit-scrollbar { display: none; }
+  nav button { flex: 0 0 auto; background: transparent; color: #666; padding: 10px 14px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; min-height: 44px; cursor: pointer; }
+  nav button.active { background: #fff; color: #667eea; box-shadow: 0 2px 5px rgba(0,0,0,.1); }
+
+  main { padding: 16px; flex: 1; }
+  .progress { background: #e0e0e0; border-radius: 10px; height: 8px; overflow: hidden; margin-bottom: 14px; }
+  .progress-bar { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); transition: width .3s; }
+
+  .card { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border-radius: 16px; padding: 36px 18px; text-align: center; min-height: 200px; display: flex; flex-direction: column; justify-content: center; user-select: none; touch-action: pan-y; cursor: pointer; }
+  .word { font-size: 30px; font-weight: bold; margin-bottom: 10px; word-break: break-word; }
+  .translation { font-size: 22px; opacity: .95; word-break: break-word; }
+  .hint { font-size: 13px; opacity: .8; margin-top: 14px; }
+  .hint.dark { color: #888; opacity: 1; text-align: center; margin-top: 10px; }
+
+  .row { display: flex; gap: 10px; margin-top: 14px; }
+  .btn { flex: 1; min-height: 52px; padding: 12px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; color: #fff; background: #667eea; cursor: pointer; }
+  .btn:active { transform: scale(.98); }
+  .btn-known { background: #4caf50; }
+  .btn-unknown { background: #ff9800; }
+  .btn-sec { background: #e0e0e0; color: #333; }
+
+  .question { font-size: 21px; font-weight: bold; text-align: center; margin-bottom: 16px; color: #333; word-break: break-word; }
+  .question.small { font-size: 16px; font-weight: normal; color: #555; }
+  .opt { display: block; width: 100%; min-height: 52px; padding: 12px 14px; margin: 8px 0; background: #f5f5f5; border: 2px solid transparent; border-radius: 12px; text-align: left; font-size: 16px; color: #333; cursor: pointer; }
+  .opt.correct { background: #c8e6c9; border-color: #4caf50; }
+  .opt.wrong { background: #ffcdd2; border-color: #f44336; }
+
+  input[type=text] { width: 100%; padding: 14px; font-size: 18px; border: 2px solid #ddd; border-radius: 12px; margin-top: 10px; }
+  input[type=text]:focus { outline: none; border-color: #667eea; }
+  .feedback { margin-top: 12px; font-size: 16px; text-align: center; min-height: 24px; font-weight: 600; }
+  .ok { color: #2e7d32; }
+  .bad { color: #c62828; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .grid > div { display: flex; flex-direction: column; gap: 10px; }
+  .tile { min-height: 56px; border-radius: 12px; background: #f5f5f5; border: 2px solid transparent; font-size: 16px; color: #333; font-weight: 600; cursor: pointer; padding: 6px; word-break: break-word; }
+  .tile.sel { background: #e8eaf6; border-color: #667eea; }
+  .tile.done { background: #c8e6c9; border-color: #4caf50; color: #2e7d32; cursor: default; }
+  .tile.wrong { background: #ffcdd2; border-color: #f44336; }
+  .letters { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 12px 0; }
+  .letters .tile { min-width: 52px; flex: 0 0 auto; }
+  .answer { min-height: 56px; border: 2px dashed #bbb; border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 8px; font-size: 22px; font-weight: bold; color: #333; word-break: break-all; }
+  .speak { background: #764ba2; color: #fff; min-height: 56px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; width: 100%; margin-bottom: 12px; cursor: pointer; }
+  .hidden { display: none !important; }
+
+  @media (max-width: 360px) {
+    .word { font-size: 24px; }
+    .translation { font-size: 18px; }
+    .question { font-size: 18px; }
+    .grid { gap: 6px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <div class="top">
+      <h1 id="appTitle"></h1>
+      <select id="uiLang" aria-label="Interface language">
+        <option value="ru">RU</option>
+        <option value="en">EN</option>
+        <option value="de">DE</option>
+      </select>
+    </div>
+    <div class="top">
+      <label id="tgtLabel" for="tgtLang"></label>
+      <select id="tgtLang">
+        <option value="ru">Русский</option>
+        <option value="de">Deutsch</option>
+        <option value="es">Español</option>
+        <option value="fr">Français</option>
+      </select>
+    </div>
+    <div class="stats">
+      <div><div class="stat-value" id="learned">0</div><div class="stat-label" id="lblLearned"></div></div>
+      <div><div class="stat-value" id="score">0</div><div class="stat-label" id="lblScore"></div></div>
+      <div><div class="stat-value" id="total">0</div><div class="stat-label" id="lblTotal"></div></div>
+    </div>
+  </header>
+
+  <nav id="nav"></nav>
+  <main id="main"></main>
+</div>
+
+<script>
+  // ============ СЛОВАРЬ ============
+  const WORDS = [
+    { en: "apple",    ru: "яблоко",   de: "Apfel",   es: "manzana", fr: "pomme" },
+    { en: "house",    ru: "дом",      de: "Haus",    es: "casa",    fr: "maison" },
+    { en: "book",     ru: "книга",    de: "Buch",    es: "libro",   fr: "livre" },
+    { en: "cat",      ru: "кошка",    de: "Katze",   es: "gato",    fr: "chat" },
+    { en: "dog",      ru: "собака",   de: "Hund",    es: "perro",   fr: "chien" },
+    { en: "water",    ru: "вода",     de: "Wasser",  es: "agua",    fr: "eau" },
+    { en: "sun",      ru: "солнце",   de: "Sonne",   es: "sol",     fr: "soleil" },
+    { en: "moon",     ru: "луна",     de: "Mond",    es: "luna",    fr: "lune" },
+    { en: "tree",     ru: "дерево",   de: "Baum",    es: "árbol",   fr: "arbre" },
+    { en: "friend",   ru: "друг",     de: "Freund",  es: "amigo",   fr: "ami" },
+    { en: "car",      ru: "машина",   de: "Auto",    es: "coche",   fr: "voiture" },
+    { en: "school",   ru: "школа",    de: "Schule",  es: "escuela", fr: "école" },
+    { en: "flower",   ru: "цветок",   de: "Blume",   es: "flor",    fr: "fleur" },
+    { en: "river",    ru: "река",     de: "Fluss",   es: "río",     fr: "rivière" },
+    { en: "mountain", ru: "гора",     de: "Berg",    es: "montaña", fr: "montagne" },
+    { en: "bird",     ru: "птица",    de: "Vogel",   es: "pájaro",  fr: "oiseau" },
+    { en: "city",     ru: "город",    de: "Stadt",   es: "ciudad",  fr: "ville" },
+    { en: "family",   ru: "семья",    de: "Familie", es: "familia", fr: "famille" },
+    { en: "money",    ru: "деньги",   de: "Geld",    es: "dinero",  fr: "argent" },
+    { en: "work",     ru: "работа",   de: "Arbeit",  es: "trabajo", fr: "travail" }
+  ];
+
+  // ============ ИНТЕРФЕЙС ============
+  const UI = {
+    ru: {
+      title: "🇬🇧 English Learner", tgtLabel: "Перевод на:", learned: "Изучено", score: "Очки", total: "Всего",
+      known: "✅ Знаю", unknown: "❌ Не знаю", next: "➡️ Далее", restart: "🔄 Начать заново", roundDone: "Раунд завершён",
+      tapFlip: "Нажми, чтобы увидеть перевод", knowIt: "Знаешь это слово?", swipeHint: "Свайп вправо — знаю, влево — не знаю",
+      quizQ: 'Как переводится "{w}"?', typeQ: 'Как будет по-английски "{w}"?', typePh: "Введите слово",
+      skip: "Пропустить", check: "Проверить", clear: "Сбросить", matchHint: "Соедините английские слова с переводами",
+      scrHint: "Соберите слово из букв", speak: "Послушать", ok: "Верно!", bad: "Неверно. Правильно:",
+      tab_flash: "📖 Карточки", tab_quiz: "✅ Тест", tab_type: "⌨️ Ввод", tab_match: "🔗 Пары", tab_scramble: "🔀 Буквы", tab_listen: "🔊 Слух"
+    },
+    en: {
+      title: "🇬🇧 English Learner", tgtLabel: "Translate to:", learned: "Learned", score: "Score", total: "Total",
+      known: "✅ Know it", unknown: "❌ Don't know", next: "➡️ Next", restart: "🔄 Start over", roundDone: "Round complete",
+      tapFlip: "Tap to see the translation", knowIt: "Do you know this word?", swipeHint: "Swipe right — know it, left — don't",
+      quizQ: 'What does "{w}" mean?', typeQ: 'How do you say "{w}" in English?', typePh: "Type the word",
+      skip: "Skip", check: "Check", clear: "Clear", matchHint: "Match English words with their translations",
+      scrHint: "Build the word from the letters", speak: "Listen", ok: "Correct!", bad: "Wrong. Answer:",
+      tab_flash: "📖 Cards", tab_quiz: "✅ Quiz", tab_type: "⌨️ Type", tab_match: "🔗 Match", tab_scramble: "🔀 Letters", tab_listen: "🔊 Listen"
+    },
+    de: {
+      title: "🇬🇧 Englisch lernen", tgtLabel: "Übersetzung auf:", learned: "Gelernt", score: "Punkte", total: "Gesamt",
+      known: "✅ Gewusst", unknown: "❌ Nicht gewusst", next: "➡️ Weiter", restart: "🔄 Neu starten", roundDone: "Runde beendet",
+      tapFlip: "Tippen für die Übersetzung", knowIt: "Kennst du dieses Wort?", swipeHint: "Nach rechts wischen — gewusst, nach links — nicht",
+      quizQ: 'Was bedeutet "{w}"?', typeQ: 'Wie sagt man "{w}" auf Englisch?', typePh: "Wort eingeben",
+      skip: "Überspringen", check: "Prüfen", clear: "Leeren", matchHint: "Ordne die englischen Wörter den Übersetzungen zu",
+      scrHint: "Setze das Wort aus den Buchstaben zusammen", speak: "Anhören", ok: "Richtig!", bad: "Falsch. Richtig:",
+      tab_flash: "📖 Karten", tab_quiz: "✅ Quiz", tab_type: "⌨️ Eingabe", tab_match: "🔗 Paare", tab_scramble: "🔀 Buchstaben", tab_listen: "🔊 Hören"
+    }
+  };
+
+  const TABS = ['flash', 'quiz', 'type', 'match', 'scramble', 'listen'];
+
+  // ============ СОСТОЯНИЕ ============
+  const $ = id => document.getElementById(id);
+  const defaults = { ui: 'ru', tgt: 'ru', score: 0, learned: [] };
+  let S;
+  try {
+    S = Object.assign({}, defaults, JSON.parse(localStorage.getItem('el') || '{}'));
+  } catch (e) {
+    S = Object.assign({}, defaults);
+  }
+  let tab = 'flash';
+  let st = {};
+  let justSwiped = false;
+
+  function save() {
+    try { localStorage.setItem('el', JSON.stringify(S)); } catch (e) {}
+  }
+  function t(k) { return UI[S.ui][k] || UI.en[k] || k; }
+  function shuffle(a) {
+    const b = [...a];
+    for (let i = b.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [b[i], b[j]] = [b[j], b[i]];
+    }
+    return b;
+  }
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+  function distractors(w) {
+    return shuffle(WORDS.filter(x => x !== w && x[S.tgt] !== w[S.tgt])).slice(0, 3);
+  }
+  function addScore(n) { S.score += n; save(); updateStats(); }
+  function learn(en) {
+    if (!S.learned.includes(en)) S.learned.push(en);
+    save(); updateStats();
+  }
+  function updateStats() {
+    $('learned').textContent = S.learned.length;
+    $('score').textContent = S.score;
+    $('total').textContent = WORDS.length;
+  }
+  function speak(text) {
+    if (!('speechSynthesis' in window)) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-US';
+    u.rate = 0.9;
+    speechSynthesis.speak(u);
+  }
+
+  // ============ НАВИГАЦИЯ И ЯЗЫК ============
+  function applyLang() {
+    document.documentElement.lang = S.ui;
+    $('uiLang').value = S.ui;
+    $('tgtLang').value = S.tgt;
+    $('appTitle').textContent = t('title');
+    $('tgtLabel').
