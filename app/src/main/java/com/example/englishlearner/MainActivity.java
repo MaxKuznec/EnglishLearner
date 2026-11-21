@@ -1,15 +1,20 @@
 package com.example.englishlearner;
 
-import android.app.Activity;
 import android.os.Bundle;
-import android.webkit.WebChromeClient;
+import android.speech.tts.TextToSpeech;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
 
-public class MainActivity extends Activity {
+import androidx.appcompat.app.AppCompatActivity;
+
+import java.util.Locale;
+
+public class MainActivity extends AppCompatActivity implements TextToSpeech.OnInitListener {
 
     private WebView webView;
+    private TextToSpeech tts;
+    private boolean ttsReady = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,19 +23,36 @@ public class MainActivity extends Activity {
         webView = new WebView(this);
         setContentView(webView);
 
-        WebSettings s = webView.getSettings();
-        s.setJavaScriptEnabled(true);       // приложение работает на JS
-        s.setDomStorageEnabled(true);       // нужно для localStorage
-        s.setAllowFileAccess(true);
-        s.setLoadWithOverviewMode(true);
-        s.setUseWideViewPort(true);
-        s.setSupportZoom(false);
-        s.setBuiltInZoomControls(false);
-        s.setDisplayZoomControls(false);
+        WebSettings settings = webView.getSettings();
+        settings.setJavaScriptEnabled(true);
+        settings.setDomStorageEnabled(true);
+        settings.setAllowFileAccess(true);
 
-        webView.setWebViewClient(new WebViewClient());
-        webView.setWebChromeClient(new WebChromeClient());
+        webView.addJavascriptInterface(new TtsBridge(), "Android");
         webView.loadUrl("file:///android_asset/index.html");
+
+        tts = new TextToSpeech(this, this);
+    }
+
+    @Override
+    public void onInit(int status) {
+        if (status == TextToSpeech.SUCCESS) {
+            int result = tts.setLanguage(Locale.US);
+            ttsReady = result != TextToSpeech.LANG_MISSING_DATA
+                    && result != TextToSpeech.LANG_NOT_SUPPORTED;
+        }
+    }
+
+    public class TtsBridge {
+        @JavascriptInterface
+        public void speak(final String text) {
+            runOnUiThread(() -> {
+                if (ttsReady) {
+                    tts.stop();
+                    tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "word");
+                }
+            });
+        }
     }
 
     @Override
@@ -40,5 +62,14 @@ public class MainActivity extends Activity {
         } else {
             super.onBackPressed();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (tts != null) {
+            tts.stop();
+            tts.shutdown();
+        }
+        super.onDestroy();
     }
 }
