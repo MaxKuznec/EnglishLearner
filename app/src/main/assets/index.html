@@ -416,13 +416,88 @@ function renderMatch() {
 /* ---------- Letters ---------- */
 function renderLetters() {
   const w = randomWord();
-  let pool = shuffle(w.en.split('')).map(c => ({c, used: false}));
+  const pool = shuffle(w.en.split('')).map(c => ({c, used: false}));
   let built = [];
   $('content').innerHTML = `
     <div class="card"><div class="label">${t('lettersHint')}</div><div class="word">${w[target]}</div></div>
     <div class="card"><div class="tiles slots" id="slots"></div></div>
     <div class="card"><div class="tiles" id="pool"></div></div>
-    <button class="btn filled" id="chk">${t('check')}</button>
-    <div id="res"></div>`;
+    <button class="btn filled" id="chk">${t('check')}</button>`;
   const draw = () => {
-    $('slots').innerHTML = built.map((i, k) => `<button class
+    $('slots').innerHTML = built.map((i, k) => `<button class="tile" data-k="${k}">${pool[i].c}</button>`).join('');
+    $('pool').innerHTML = pool.map((p, i) => `<button class="tile" data-i="${i}" ${p.used ? 'disabled' : ''}>${p.c}</button>`).join('');
+    $('pool').querySelectorAll('.tile').forEach(b => b.onclick = () => {
+      const i = +b.dataset.i;
+      pool[i].used = true;
+      built.push(i);
+      draw();
+    });
+    $('slots').querySelectorAll('.tile').forEach(b => b.onclick = () => {
+      const k = +b.dataset.k;
+      pool[built[k]].used = false;
+      built.splice(k, 1);
+      draw();
+    });
+  };
+  draw();
+  $('chk').onclick = () => {
+    if (built.length < w.en.length) return;
+    const ok = built.map(i => pool[i].c).join('') === w.en;
+    $('chk').remove();
+    if (ok) { addScore(1); markLearned(w); }
+    feedback(ok, w.en);
+  };
+}
+
+/* ---------- Listen ---------- */
+function renderListen() {
+  const w = randomWord();
+  const opts = options(w);
+  $('content').innerHTML = `
+    <div class="card center">
+      <div class="label">${t('listenHint')}</div>
+      <button class="speak" id="play">🔊</button>
+      <div class="label">${t('play')}</div>
+    </div>
+    <div class="options">${opts.map(o => `<button class="opt" data-v="${o}">${o}</button>`).join('')}</div>`;
+  $('play').onclick = () => speak(w.en);
+  setTimeout(() => speak(w.en), 300);
+  const btns = $('content').querySelectorAll('.opt');
+  btns.forEach(b => b.onclick = () => {
+    btns.forEach(x => x.disabled = true);
+    const ok = b.dataset.v === w[target];
+    b.classList.add(ok ? 'correct' : 'wrong');
+    if (!ok) btns.forEach(x => { if (x.dataset.v === w[target]) x.classList.add('correct'); });
+    if (ok) { addScore(1); markLearned(w); }
+    feedback(ok, w[target]);
+  });
+}
+
+/* ---------- Dispatcher and init ---------- */
+function render() {
+  if (mode === 'cards') renderCards();
+  else if (mode === 'quiz') renderQuiz();
+  else if (mode === 'type') renderType();
+  else if (mode === 'match') renderMatch();
+  else if (mode === 'letters') renderLetters();
+  else if (mode === 'listen') renderListen();
+}
+
+$('uiLang').onchange = e => {
+  uiLang = e.target.value;
+  localStorage.setItem('el_ui', uiLang);
+  applyStatic();
+  render();
+};
+$('targetLang').onchange = e => {
+  target = e.target.value;
+  localStorage.setItem('el_target', target);
+  applyStatic();
+  render();
+};
+
+applyStatic();
+render();
+</script>
+</body>
+</html>
