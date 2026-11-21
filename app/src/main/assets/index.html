@@ -3,487 +3,426 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#667eea">
+<meta name="theme-color" content="#6750A4">
+<meta name="mobile-web-app-capable" content="yes">
 <title>English Learner</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; font-family: Roboto, 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
-  html, body { min-height: 100%; }
-  body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; justify-content: center; }
-  .app { background: #fff; width: 100%; max-width: 560px; min-height: 100vh; display: flex; flex-direction: column; }
-
-  header { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; padding: 14px 14px 12px; }
-  .top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-  .top + .top { margin-top: 10px; }
-  h1 { font-size: 20px; }
-  .top label { font-size: 14px; }
-  select { padding: 8px; border-radius: 8px; border: none; font-size: 15px; background: #fff; color: #333; min-height: 40px; }
-  .stats { display: flex; justify-content: space-around; margin-top: 12px; background: rgba(255,255,255,.18); border-radius: 12px; padding: 10px; }
-  .stat-value { font-size: 20px; font-weight: bold; text-align: center; }
-  .stat-label { font-size: 11px; opacity: .9; text-align: center; }
-
-  nav { display: flex; overflow-x: auto; gap: 6px; padding: 10px; background: #f0f0f0; scrollbar-width: none; }
-  nav::-webkit-scrollbar { display: none; }
-  nav button { flex: 0 0 auto; background: transparent; color: #666; padding: 10px 14px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; min-height: 44px; cursor: pointer; }
-  nav button.active { background: #fff; color: #667eea; box-shadow: 0 2px 5px rgba(0,0,0,.1); }
-
-  main { padding: 16px; flex: 1; }
-  .progress { background: #e0e0e0; border-radius: 10px; height: 8px; overflow: hidden; margin-bottom: 14px; }
-  .progress-bar { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); transition: width .3s; }
-
-  .card { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border-radius: 16px; padding: 36px 18px; text-align: center; min-height: 200px; display: flex; flex-direction: column; justify-content: center; user-select: none; touch-action: pan-y; cursor: pointer; }
-  .word { font-size: 30px; font-weight: bold; margin-bottom: 10px; word-break: break-word; }
-  .translation { font-size: 22px; opacity: .95; word-break: break-word; }
-  .hint { font-size: 13px; opacity: .8; margin-top: 14px; }
-  .hint.dark { color: #888; opacity: 1; text-align: center; margin-top: 10px; }
-
-  .row { display: flex; gap: 10px; margin-top: 14px; }
-  .btn { flex: 1; min-height: 52px; padding: 12px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; color: #fff; background: #667eea; cursor: pointer; }
-  .btn:active { transform: scale(.98); }
-  .btn-known { background: #4caf50; }
-  .btn-unknown { background: #ff9800; }
-  .btn-sec { background: #e0e0e0; color: #333; }
-
-  .question { font-size: 21px; font-weight: bold; text-align: center; margin-bottom: 16px; color: #333; word-break: break-word; }
-  .question.small { font-size: 16px; font-weight: normal; color: #555; }
-  .opt { display: block; width: 100%; min-height: 52px; padding: 12px 14px; margin: 8px 0; background: #f5f5f5; border: 2px solid transparent; border-radius: 12px; text-align: left; font-size: 16px; color: #333; cursor: pointer; }
-  .opt.correct { background: #c8e6c9; border-color: #4caf50; }
-  .opt.wrong { background: #ffcdd2; border-color: #f44336; }
-
-  input[type=text] { width: 100%; padding: 14px; font-size: 18px; border: 2px solid #ddd; border-radius: 12px; margin-top: 10px; }
-  input[type=text]:focus { outline: none; border-color: #667eea; }
-  .feedback { margin-top: 12px; font-size: 16px; text-align: center; min-height: 24px; font-weight: 600; }
-  .ok { color: #2e7d32; }
-  .bad { color: #c62828; }
-
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .grid > div { display: flex; flex-direction: column; gap: 10px; }
-  .tile { min-height: 56px; border-radius: 12px; background: #f5f5f5; border: 2px solid transparent; font-size: 16px; color: #333; font-weight: 600; cursor: pointer; padding: 6px; word-break: break-word; }
-  .tile.sel { background: #e8eaf6; border-color: #667eea; }
-  .tile.done { background: #c8e6c9; border-color: #4caf50; color: #2e7d32; cursor: default; }
-  .tile.wrong { background: #ffcdd2; border-color: #f44336; }
-  .letters { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 12px 0; }
-  .letters .tile { min-width: 52px; flex: 0 0 auto; }
-  .answer { min-height: 56px; border: 2px dashed #bbb; border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 8px; font-size: 22px; font-weight: bold; color: #333; word-break: break-all; }
-  .speak { background: #764ba2; color: #fff; min-height: 56px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; width: 100%; margin-bottom: 12px; cursor: pointer; }
-  .hidden { display: none !important; }
-
-  @media (max-width: 360px) {
-    .word { font-size: 24px; }
-    .translation { font-size: 18px; }
-    .question { font-size: 18px; }
-    .grid { gap: 6px; }
-  }
+:root{
+  --primary:#6750A4;--on-primary:#FFFFFF;--primary-container:#EADDFF;--on-primary-container:#21005D;
+  --secondary-container:#E8DEF8;--tertiary-container:#FFD8E4;--on-tertiary-container:#31111D;
+  --surface:#FEF7FF;--surface-container:#F3EDF7;--surface-high:#ECE6F0;
+  --on-surface:#1D1B20;--on-surface-variant:#49454F;--outline:#79747E;
+  --success:#1B6E20;--success-container:#C4EED0;--error:#B3261E;--error-container:#F9DEDC;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:Roboto,system-ui,-apple-system,"Segoe UI",sans-serif;
+  background:var(--surface);color:var(--on-surface);
+  display:flex;flex-direction:column;min-height:100vh;
+  padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  user-select:none;-webkit-user-select:none;
+}
+header{
+  background:var(--primary);color:var(--on-primary);
+  padding:20px 20px 24px;border-radius:0 0 28px 28px;
+}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.title{font-size:22px;font-weight:600;letter-spacing:.2px}
+.selects{display:flex;gap:8px;margin-top:16px;align-items:center;flex-wrap:wrap}
+.selects label{font-size:12px;opacity:.85;margin-right:4px}
+.select{
+  appearance:none;-webkit-appearance:none;background:rgba(255,255,255,.16);color:#fff;
+  border:1px solid rgba(255,255,255,.35);border-radius:12px;padding:8px 28px 8px 12px;font-size:14px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='white' fill='none' stroke-width='2'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;
+}
+.select option{color:#000}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
+.stat{background:rgba(255,255,255,.14);border-radius:16px;padding:10px;text-align:center}
+.stat b{display:block;font-size:22px;font-weight:600}
+.stat span{font-size:12px;opacity:.9}
+nav{
+  display:flex;gap:8px;overflow-x:auto;padding:16px 14px 4px;scrollbar-width:none;
+}
+nav::-webkit-scrollbar{display:none}
+.tab{
+  flex:0 0 auto;border:1px solid var(--outline);background:transparent;color:var(--on-surface-variant);
+  border-radius:12px;padding:8px 14px;font-size:14px;cursor:pointer;display:flex;gap:6px;align-items:center;
+}
+.tab.active{background:var(--secondary-container);color:var(--on-primary-container);border-color:transparent;font-weight:600}
+main{flex:1;padding:16px;display:flex;flex-direction:column;gap:16px;max-width:520px;width:100%;margin:0 auto}
+.card{
+  background:var(--surface-container);border-radius:var(--radius,24px);padding:20px;
+  box-shadow:0 1px 3px rgba(0,0,0,.08);
+}
+.label{font-size:13px;color:var(--on-surface-variant);text-align:center;letter-spacing:.3px}
+.word{font-size:34px;font-weight:600;text-align:center;margin-top:6px;word-break:break-word}
+.hint{font-size:13px;color:var(--on-surface-variant);text-align:center}
+.flashcard{perspective:1000px;height:230px;touch-action:pan-y;cursor:grab}
+.fc-inner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+.flipped .fc-inner{transform:rotateY(180deg)}
+.fc-face{
+  position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border-radius:28px;font-size:34px;font-weight:600;padding:16px;text-align:center;
+  box-shadow:0 2px 8px rgba(0,0,0,.1);
+}
+.fc-front{background:var(--primary-container);color:var(--on-primary-container)}
+.fc-back{background:var(--tertiary-container);color:var(--on-tertiary-container);transform:rotateY(180deg)}
+.fc-glow{position:absolute;top:12px;left:0;right:0;text-align:center;font-size:13px;opacity:.7}
+.row{display:flex;gap:10px}
+.btn{
+  flex:1;border:none;border-radius:999px;padding:14px 16px;font-size:15px;font-weight:600;cursor:pointer;
+  transition:transform .1s,opacity .2s;
+}
+.btn:active{transform:scale(.97)}
+.btn.filled{background:var(--primary);color:var(--on-primary)}
+.btn.tonal{background:var(--secondary-container);color:var(--on-primary-container)}
+.btn.outline{background:transparent;color:var(--primary);border:1px solid var(--outline)}
+.btn:disabled{opacity:.4}
+.options{display:flex;flex-direction:column;gap:10px}
+.opt{
+  width:100%;text-align:left;border:1px solid var(--outline);background:var(--surface);
+  border-radius:16px;padding:16px;font-size:16px;cursor:pointer;color:var(--on-surface);
+}
+.opt.correct{background:var(--success-container);border-color:var(--success);color:var(--success)}
+.opt.wrong{background:var(--error-container);border-color:var(--error);color:var(--error)}
+.opt:disabled{cursor:default}
+.input{
+  width:100%;padding:16px;font-size:18px;border-radius:16px;border:1px solid var(--outline);
+  background:var(--surface);color:var(--on-surface);outline:none;user-select:text;-webkit-user-select:text;
+}
+.input:focus{border:2px solid var(--primary);padding:15px}
+.feedback{min-height:24px;text-align:center;font-weight:600}
+.feedback.ok{color:var(--success)}
+.feedback.bad{color:var(--error)}
+.tiles{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:56px}
+.tile{
+  min-width:44px;height:48px;padding:0 12px;border-radius:12px;border:none;font-size:20px;font-weight:600;
+  background:var(--primary-container);color:var(--on-primary-container);cursor:pointer;
+}
+.tile:disabled{opacity:.3}
+.slots .tile{background:var(--surface-high)}
+.match-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mbtn{
+  border:1px solid var(--outline);background:var(--surface);border-radius:14px;padding:14px 8px;
+  font-size:15px;cursor:pointer;color:var(--on-surface);min-height:52px;
+}
+.mbtn.sel{border:2px solid var(--primary);background:var(--primary-container)}
+.mbtn.done{background:var(--success-container);border-color:transparent;color:var(--success);opacity:.8}
+.mbtn.bad{background:var(--error-container);border-color:var(--error)}
+.speak{
+  align-self:center;width:72px;height:72px;border-radius:50%;border:none;cursor:pointer;
+  background:var(--primary);color:var(--on-primary);font-size:28px;box-shadow:0 4px 12px rgba(103,80,164,.35);
+}
+.speak:active{transform:scale(.95)}
+.center{display:flex;flex-direction:column;gap:14px;align-items:stretch}
+.hidden{display:none}
 </style>
 </head>
 <body>
 
-<div class="app">
-  <header>
-    <div class="top">
-      <h1 id="appTitle"></h1>
-      <select id="uiLang" aria-label="Interface language">
-        <option value="ru">RU</option>
-        <option value="en">EN</option>
-        <option value="de">DE</option>
-      </select>
-    </div>
-    <div class="top">
-      <label id="tgtLabel" for="tgtLang"></label>
-      <select id="tgtLang">
-        <option value="ru">Русский</option>
-        <option value="de">Deutsch</option>
-        <option value="es">Español</option>
-        <option value="fr">Français</option>
-      </select>
-    </div>
-    <div class="stats">
-      <div><div class="stat-value" id="learned">0</div><div class="stat-label" id="lblLearned"></div></div>
-      <div><div class="stat-value" id="score">0</div><div class="stat-label" id="lblScore"></div></div>
-      <div><div class="stat-value" id="total">0</div><div class="stat-label" id="lblTotal"></div></div>
-    </div>
-  </header>
+<header>
+  <div class="top">
+    <div class="title" id="appTitle">English</div>
+  </div>
+  <div class="selects">
+    <label id="uiLabel">UI</label>
+    <select class="select" id="uiLang">
+      <option value="ru">Русский</option>
+      <option value="en">English</option>
+      <option value="de">Deutsch</option>
+    </select>
+    <label id="tgtLabel">→</label>
+    <select class="select" id="targetLang">
+      <option value="ru">Русский</option>
+      <option value="de">Deutsch</option>
+      <option value="es">Español</option>
+      <option value="fr">Français</option>
+    </select>
+  </div>
+  <div class="stats">
+    <div class="stat"><b id="sLearned">0</b><span id="sLearnedL"></span></div>
+    <div class="stat"><b id="sScore">0</b><span id="sScoreL"></span></div>
+    <div class="stat"><b id="sTotal">0</b><span id="sTotalL"></span></div>
+  </div>
+</header>
 
-  <nav id="nav"></nav>
-  <main id="main"></main>
-</div>
+<nav id="nav"></nav>
+<main id="content"></main>
 
 <script>
-  // ============ СЛОВАРЬ ============
-  const WORDS = [
-    { en: "apple",    ru: "яблоко",   de: "Apfel",   es: "manzana", fr: "pomme" },
-    { en: "house",    ru: "дом",      de: "Haus",    es: "casa",    fr: "maison" },
-    { en: "book",     ru: "книга",    de: "Buch",    es: "libro",   fr: "livre" },
-    { en: "cat",      ru: "кошка",    de: "Katze",   es: "gato",    fr: "chat" },
-    { en: "dog",      ru: "собака",   de: "Hund",    es: "perro",   fr: "chien" },
-    { en: "water",    ru: "вода",     de: "Wasser",  es: "agua",    fr: "eau" },
-    { en: "sun",      ru: "солнце",   de: "Sonne",   es: "sol",     fr: "soleil" },
-    { en: "moon",     ru: "луна",     de: "Mond",    es: "luna",    fr: "lune" },
-    { en: "tree",     ru: "дерево",   de: "Baum",    es: "árbol",   fr: "arbre" },
-    { en: "friend",   ru: "друг",     de: "Freund",  es: "amigo",   fr: "ami" },
-    { en: "car",      ru: "машина",   de: "Auto",    es: "coche",   fr: "voiture" },
-    { en: "school",   ru: "школа",    de: "Schule",  es: "escuela", fr: "école" },
-    { en: "flower",   ru: "цветок",   de: "Blume",   es: "flor",    fr: "fleur" },
-    { en: "river",    ru: "река",     de: "Fluss",   es: "río",     fr: "rivière" },
-    { en: "mountain", ru: "гора",     de: "Berg",    es: "montaña", fr: "montagne" },
-    { en: "bird",     ru: "птица",    de: "Vogel",   es: "pájaro",  fr: "oiseau" },
-    { en: "city",     ru: "город",    de: "Stadt",   es: "ciudad",  fr: "ville" },
-    { en: "family",   ru: "семья",    de: "Familie", es: "familia", fr: "famille" },
-    { en: "money",    ru: "деньги",   de: "Geld",    es: "dinero",  fr: "argent" },
-    { en: "work",     ru: "работа",   de: "Arbeit",  es: "trabajo", fr: "travail" }
-  ];
+const DICT = [
+  {en:'money',  ru:'деньги', de:'Geld',   es:'dinero',   fr:'argent'},
+  {en:'book',   ru:'книга',  de:'Buch',   es:'libro',    fr:'livre'},
+  {en:'water',  ru:'вода',   de:'Wasser', es:'agua',     fr:'eau'},
+  {en:'mountain',ru:'гора',  de:'Berg',   es:'montaña',  fr:'montagne'},
+  {en:'house',  ru:'дом',    de:'Haus',   es:'casa',     fr:'maison'},
+  {en:'dog',    ru:'собака', de:'Hund',   es:'perro',    fr:'chien'},
+  {en:'cat',    ru:'кошка',  de:'Katze',  es:'gato',     fr:'chat'},
+  {en:'sun',    ru:'солнце', de:'Sonne',  es:'sol',      fr:'soleil'},
+  {en:'tree',   ru:'дерево', de:'Baum',   es:'árbol',    fr:'arbre'},
+  {en:'apple',  ru:'яблоко', de:'Apfel',  es:'manzana',  fr:'pomme'},
+  {en:'car',    ru:'машина', de:'Auto',   es:'coche',    fr:'voiture'},
+  {en:'friend', ru:'друг',   de:'Freund', es:'amigo',    fr:'ami'},
+  {en:'school', ru:'школа',  de:'Schule', es:'escuela',  fr:'école'},
+  {en:'food',   ru:'еда',    de:'Essen',  es:'comida',   fr:'nourriture'},
+  {en:'window', ru:'окно',   de:'Fenster',es:'ventana',  fr:'fenêtre'},
+  {en:'door',   ru:'дверь',  de:'Tür',    es:'puerta',   fr:'porte'},
+  {en:'time',   ru:'время',  de:'Zeit',   es:'tiempo',   fr:'temps'},
+  {en:'city',   ru:'город',  de:'Stadt',  es:'ciudad',   fr:'ville'},
+  {en:'river',  ru:'река',   de:'Fluss',  es:'río',      fr:'rivière'},
+  {en:'bread',  ru:'хлеб',   de:'Brot',   es:'pan',      fr:'pain'}
+];
 
-  // ============ ИНТЕРФЕЙС ============
-  const UI = {
-    ru: {
-      title: "🇬🇧 English Learner", tgtLabel: "Перевод на:", learned: "Изучено", score: "Очки", total: "Всего",
-      known: "✅ Знаю", unknown: "❌ Не знаю", next: "➡️ Далее", restart: "🔄 Начать заново", roundDone: "Раунд завершён",
-      tapFlip: "Нажми, чтобы увидеть перевод", knowIt: "Знаешь это слово?", swipeHint: "Свайп вправо — знаю, влево — не знаю",
-      quizQ: 'Как переводится "{w}"?', typeQ: 'Как будет по-английски "{w}"?', typePh: "Введите слово",
-      skip: "Пропустить", check: "Проверить", clear: "Сбросить", matchHint: "Соедините английские слова с переводами",
-      scrHint: "Соберите слово из букв", speak: "Послушать", ok: "Верно!", bad: "Неверно. Правильно:",
-      tab_flash: "📖 Карточки", tab_quiz: "✅ Тест", tab_type: "⌨️ Ввод", tab_match: "🔗 Пары", tab_scramble: "🔀 Буквы", tab_listen: "🔊 Слух"
-    },
-    en: {
-      title: "🇬🇧 English Learner", tgtLabel: "Translate to:", learned: "Learned", score: "Score", total: "Total",
-      known: "✅ Know it", unknown: "❌ Don't know", next: "➡️ Next", restart: "🔄 Start over", roundDone: "Round complete",
-      tapFlip: "Tap to see the translation", knowIt: "Do you know this word?", swipeHint: "Swipe right — know it, left — don't",
-      quizQ: 'What does "{w}" mean?', typeQ: 'How do you say "{w}" in English?', typePh: "Type the word",
-      skip: "Skip", check: "Check", clear: "Clear", matchHint: "Match English words with their translations",
-      scrHint: "Build the word from the letters", speak: "Listen", ok: "Correct!", bad: "Wrong. Answer:",
-      tab_flash: "📖 Cards", tab_quiz: "✅ Quiz", tab_type: "⌨️ Type", tab_match: "🔗 Match", tab_scramble: "🔀 Letters", tab_listen: "🔊 Listen"
-    },
-    de: {
-      title: "🇬🇧 Englisch lernen", tgtLabel: "Übersetzung auf:", learned: "Gelernt", score: "Punkte", total: "Gesamt",
-      known: "✅ Gewusst", unknown: "❌ Nicht gewusst", next: "➡️ Weiter", restart: "🔄 Neu starten", roundDone: "Runde beendet",
-      tapFlip: "Tippen für die Übersetzung", knowIt: "Kennst du dieses Wort?", swipeHint: "Nach rechts wischen — gewusst, nach links — nicht",
-      quizQ: 'Was bedeutet "{w}"?', typeQ: 'Wie sagt man "{w}" auf Englisch?', typePh: "Wort eingeben",
-      skip: "Überspringen", check: "Prüfen", clear: "Leeren", matchHint: "Ordne die englischen Wörter den Übersetzungen zu",
-      scrHint: "Setze das Wort aus den Buchstaben zusammen", speak: "Anhören", ok: "Richtig!", bad: "Falsch. Richtig:",
-      tab_flash: "📖 Karten", tab_quiz: "✅ Quiz", tab_type: "⌨️ Eingabe", tab_match: "🔗 Paare", tab_scramble: "🔀 Buchstaben", tab_listen: "🔊 Hören"
-    }
-  };
+const I18N = {
+  ru:{appTitle:'Английский',ui:'Язык',tgt:'Перевод',learned:'Выучено',score:'Очки',total:'Всего',
+      cards:'Карточки',quiz:'Выбор',type:'Ввод',match:'Пары',letters:'Буквы',listen:'Слух',
+      flip:'Нажмите, чтобы перевернуть. Свайп вправо — знаю, влево — не знаю.',
+      known:'Знаю',unknown:'Не знаю',translate:'Выберите перевод',typeIt:'Напишите слово по-английски',
+      check:'Проверить',next:'Далее',correct:'Верно!',wrong:'Неверно. Правильно:',
+      matchHint:'Соедините английское слово с переводом',allDone:'Все пары найдены!',
+      listenHint:'Послушайте и выберите перевод',play:'Повторить',
+      lettersHint:'Соберите слово из букв',done:'Раунд завершён'},
+  en:{appTitle:'English',ui:'Language',tgt:'Translation',learned:'Learned',score:'Score',total:'Total',
+      cards:'Cards',quiz:'Quiz',type:'Type',match:'Match',letters:'Letters',listen:'Listen',
+      flip:'Tap to flip. Swipe right — known, left — unknown.',
+      known:'Know it',unknown:'Don\'t know',translate:'Choose the translation',typeIt:'Type the English word',
+      check:'Check',next:'Next',correct:'Correct!',wrong:'Wrong. Correct answer:',
+      matchHint:'Match the English word with its translation',allDone:'All pairs found!',
+      listenHint:'Listen and choose the translation',play:'Replay',
+      lettersHint:'Build the word from letters',done:'Round complete'},
+  de:{appTitle:'Englisch lernen',ui:'Sprache',tgt:'Übersetzung',learned:'Gelernt',score:'Punkte',total:'Gesamt',
+      cards:'Karten',quiz:'Auswahl',type:'Eingabe',match:'Paare',letters:'Buchstaben',listen:'Hören',
+      flip:'Tippen zum Umdrehen. Nach rechts wischen — gewusst, nach links — nicht gewusst.',
+      known:'Gewusst',unknown:'Nicht gewusst',translate:'Wähle die Übersetzung',typeIt:'Schreibe das englische Wort',
+      check:'Prüfen',next:'Weiter',correct:'Richtig!',wrong:'Falsch. Richtig:',
+      matchHint:'Verbinde das englische Wort mit der Übersetzung',allDone:'Alle Paare gefunden!',
+      listenHint:'Höre zu und wähle die Übersetzung',play:'Wiederholen',
+      lettersHint:'Baue das Wort aus Buchstaben',done:'Runde beendet'}
+};
 
-  const TABS = ['flash', 'quiz', 'type', 'match', 'scramble', 'listen'];
+const MODES = ['cards','quiz','type','match','letters','listen'];
+const ICONS = {cards:'🃏',quiz:'🔘',type:'⌨️',match:'🔗',letters:'🔀',listen:'🔊'};
 
-  // ============ СОСТОЯНИЕ ============
-  const $ = id => document.getElementById(id);
-  const defaults = { ui: 'ru', tgt: 'ru', score: 0, learned: [] };
-  let S;
-  try {
-    S = Object.assign({}, defaults, JSON.parse(localStorage.getItem('el') || '{}'));
-  } catch (e) {
-    S = Object.assign({}, defaults);
-  }
-  let tab = 'flash';
-  let st = {};
-  let justSwiped = false;
+let uiLang = localStorage.getItem('el_ui') || 'ru';
+let target = localStorage.getItem('el_target') || 'ru';
+let mode = localStorage.getItem('el_mode') || 'cards';
+let score = parseInt(localStorage.getItem('el_score') || '0', 10);
+let learned = JSON.parse(localStorage.getItem('el_learned') || '[]');
 
-  function save() {
-    try { localStorage.setItem('el', JSON.stringify(S)); } catch (e) {}
-  }
-  function t(k) { return UI[S.ui][k] || UI.en[k] || k; }
-  function shuffle(a) {
-    const b = [...a];
-    for (let i = b.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [b[i], b[j]] = [b[j], b[i]];
-    }
-    return b;
-  }
-  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
-  function distractors(w) {
-    return shuffle(WORDS.filter(x => x !== w && x[S.tgt] !== w[S.tgt])).slice(0, 3);
-  }
-  function addScore(n) { S.score += n; save(); updateStats(); }
-  function learn(en) {
-    if (!S.learned.includes(en)) S.learned.push(en);
-    save(); updateStats();
-  }
-  function updateStats() {
-    $('learned').textContent = S.learned.length;
-    $('score').textContent = S.score;
-    $('total').textContent = WORDS.length;
-  }
-  function speak(text) {
-    if (!('speechSynthesis' in window)) return;
+const $ = id => document.getElementById(id);
+const t = k => (I18N[uiLang] && I18N[uiLang][k]) || I18N.en[k];
+const shuffle = a => a.map(v => [Math.random(), v]).sort((x, y) => x[0] - y[0]).map(x => x[1]);
+const randomWord = () => DICT[Math.floor(Math.random() * DICT.length)];
+
+function speak(text) {
+  if (window.AndroidTTS) { AndroidTTS.speak(text); return; }
+  if ('speechSynthesis' in window) {
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'en-US';
-    u.rate = 0.9;
     speechSynthesis.speak(u);
   }
+}
 
-    // ============ НАВИГАЦИЯ И ЯЗЫК ============
-  function applyLang() {
-    document.documentElement.lang = S.ui;
-    $('uiLang').value = S.ui;
-    $('tgtLang').value = S.tgt;
-    $('appTitle').textContent = t('title');
-    $('tgtLabel').textContent = t('tgtLabel');
-    $('lblLearned').textContent = t('learned');
-    $('lblScore').textContent = t('score');
-    $('lblTotal').textContent = t('total');
-    renderNav();
-    render();
-    updateStats();
+function options(correct) {
+  const others = shuffle(DICT.filter(w => w !== correct)).slice(0, 3).map(w => w[target]);
+  return shuffle([correct[target], ...others]);
+}
+
+function addScore(n) {
+  score += n;
+  localStorage.setItem('el_score', score);
+}
+
+function markLearned(word) {
+  if (!learned.includes(word.en)) {
+    learned.push(word.en);
+    localStorage.setItem('el_learned', JSON.stringify(learned));
   }
+}
 
-  function renderNav() {
-    $('nav').innerHTML = TABS.map(k =>
-      `<button class="${k === tab ? 'active' : ''}" onclick="setTab('${k}')">${t('tab_' + k)}</button>`
-    ).join('');
-  }
+function applyStatic() {
+  document.documentElement.lang = uiLang;
+  $('appTitle').textContent = t('appTitle');
+  $('uiLabel').textContent = t('ui') + ':';
+  $('tgtLabel').textContent = t('tgt') + ':';
+  $('sLearnedL').textContent = t('learned');
+  $('sScoreL').textContent = t('score');
+  $('sTotalL').textContent = t('total');
+  $('sTotal').textContent = DICT.length;
+  $('uiLang').value = uiLang;
+  $('targetLang').value = target;
+  $('sLearned').textContent = learned.length;
+  $('sScore').textContent = score;
+  $('nav').innerHTML = MODES.map(m =>
+    `<button class="tab ${m === mode ? 'active' : ''}" data-m="${m}">${ICONS[m]} ${t(m)}</button>`
+  ).join('');
+  $('nav').querySelectorAll('.tab').forEach(b => b.onclick = () => setMode(b.dataset.m));
+}
 
-  function setTab(k) {
-    tab = k;
-    st = {};
-    applyLang();
-  }
+function setMode(m) {
+  mode = m;
+  localStorage.setItem('el_mode', m);
+  applyStatic();
+  render();
+}
 
-  function render() {
-    const map = {
-      flash: renderFlash, quiz: renderQuiz, type: renderType,
-      match: renderMatch, scramble: renderScramble, listen: renderListen
-    };
-    map[tab]();
-  }
+function feedback(ok, correct) {
+  const c = $('content');
+  const fb = document.createElement('div');
+  fb.innerHTML = `<div class="feedback ${ok ? 'ok' : 'bad'}">${ok ? t('correct') : t('wrong') + ' ' + correct}</div>
+    <button class="btn filled" id="nx" style="margin-top:12px;width:100%">${t('next')}</button>`;
+  c.appendChild(fb);
+  $('nx').onclick = render;
+}
 
-  // ============ КАРТОЧКИ ============
-  function renderFlash() {
-    const m = $('main');
-    if (st.i === undefined) st.i = 0;
-    if (st.i >= WORDS.length) {
-      m.innerHTML = `<div class="card"><div class="word">🎉</div>
-        <div class="translation">${t('roundDone')}: ${S.learned.length}/${WORDS.length}</div></div>
-        <div class="row"><button class="btn" onclick="st.i=0;render()">${t('restart')}</button></div>`;
-      return;
-    }
-    const w = WORDS[st.i];
-    st.flipped = false;
-    m.innerHTML = `
-      <div class="progress"><div class="progress-bar" style="width:${st.i / WORDS.length * 100}%"></div></div>
-      <div class="card" id="card" onclick="if(!justSwiped)flip()">
-        <div class="word">${w.en}</div>
-        <div class="translation hidden" id="tr">${w[S.tgt]}</div>
-        <div class="hint" id="hint">${t('tapFlip')}</div>
+/* ---------- Cards ---------- */
+let cardWord = null;
+function renderCards() {
+  cardWord = randomWord();
+  $('content').innerHTML = `
+    <div class="center">
+      <div class="flashcard" id="card">
+        <div class="fc-inner">
+          <div class="fc-face fc-front">${cardWord.en}</div>
+          <div class="fc-face fc-back">${cardWord[target]}</div>
+        </div>
       </div>
+      <p class="hint">${t('flip')}</p>
       <div class="row">
-        <button class="btn btn-unknown" onclick="flashMark(false)">${t('unknown')}</button>
-        <button class="btn btn-known" onclick="flashMark(true)">${t('known')}</button>
+        <button class="btn outline" id="no">✕ ${t('unknown')}</button>
+        <button class="btn filled" id="yes">✓ ${t('known')}</button>
       </div>
-      <div class="hint dark">${t('swipeHint')}</div>`;
-    bindSwipe($('card'), dir => flashMark(dir));
-  }
+    </div>`;
+  const card = $('card');
+  let startX = 0, dx = 0, dragging = false, moved = false;
+  card.addEventListener('pointerdown', e => { startX = e.clientX; dragging = true; moved = false; card.setPointerCapture(e.pointerId); });
+  card.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    dx = e.clientX - startX;
+    if (Math.abs(dx) > 8) moved = true;
+    card.style.transition = 'none';
+    card.style.transform = `translateX(${dx}px) rotate(${dx / 20}deg)`;
+  });
+  const end = () => {
+    if (!dragging) return;
+    dragging = false;
+    card.style.transition = 'transform .25s';
+    if (dx > 100) return swipe(true, card);
+    if (dx < -100) return swipe(false, card);
+    card.style.transform = '';
+    if (!moved) card.classList.toggle('flipped');
+    dx = 0;
+  };
+  card.addEventListener('pointerup', end);
+  card.addEventListener('pointercancel', end);
+  $('yes').onclick = () => swipe(true, card);
+  $('no').onclick = () => swipe(false, card);
+}
+function swipe(known, card) {
+  card.style.transition = 'transform .25s, opacity .25s';
+  card.style.transform = `translateX(${known ? 400 : -400}px) rotate(${known ? 20 : -20}deg)`;
+  card.style.opacity = '0';
+  if (known) { markLearned(cardWord); addScore(1); }
+  setTimeout(renderCards, 250);
+}
 
-  function flip() {
-    st.flipped = true;
-    $('tr').classList.remove('hidden');
-    $('hint').textContent = t('knowIt');
-  }
+/* ---------- Quiz ---------- */
+function renderQuiz() {
+  const w = randomWord();
+  const opts = options(w);
+  $('content').innerHTML = `
+    <div class="card"><div class="label">${t('translate')}</div><div class="word">${w.en}</div></div>
+    <div class="options">${opts.map(o => `<button class="opt" data-v="${o}">${o}</button>`).join('')}</div>`;
+  const btns = $('content').querySelectorAll('.opt');
+  btns.forEach(b => b.onclick = () => {
+    btns.forEach(x => x.disabled = true);
+    const ok = b.dataset.v === w[target];
+    b.classList.add(ok ? 'correct' : 'wrong');
+    if (!ok) btns.forEach(x => { if (x.dataset.v === w[target]) x.classList.add('correct'); });
+    if (ok) { addScore(1); markLearned(w); }
+    feedback(ok, w[target]);
+  });
+}
 
-  function flashMark(known) {
-    if (!st.flipped) { flip(); return; }
-    if (known) { learn(WORDS[st.i].en); addScore(10); }
-    st.i++;
-    render();
-  }
+/* ---------- Type ---------- */
+function renderType() {
+  const w = randomWord();
+  $('content').innerHTML = `
+    <div class="card"><div class="label">${t('typeIt')}</div><div class="word">${w[target]}</div></div>
+    <input class="input" id="ans" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="english">
+    <button class="btn filled" id="chk">${t('check')}</button>`;
+  const input = $('ans');
+  input.focus();
+  const check = () => {
+    if (input.disabled) return;
+    const ok = input.value.trim().toLowerCase() === w.en;
+    input.disabled = true;
+    input.style.borderColor = ok ? 'var(--success)' : 'var(--error)';
+    if (ok) { addScore(1); markLearned(w); }
+    $('chk').remove();
+    feedback(ok, w.en);
+  };
+  $('chk').onclick = check;
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') check(); });
+}
 
-  function bindSwipe(el, cb) {
-    let x0 = null;
-    el.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
-    el.addEventListener('touchend', e => {
-      if (x0 === null) return;
-      const dx = e.changedTouches[0].clientX - x0;
-      x0 = null;
-      if (Math.abs(dx) > 70) {
-        justSwiped = true;
-        setTimeout(() => { justSwiped = false; }, 400);
-        cb(dx > 0);
+/* ---------- Match ---------- */
+function renderMatch() {
+  const pairs = shuffle(DICT).slice(0, 5).map((w, i) => ({id: i, en: w.en, tr: w[target]}));
+  const left = shuffle(pairs), right = shuffle(pairs);
+  let selL = null, selR = null, found = 0;
+  $('content').innerHTML = `
+    <div class="label">${t('matchHint')}</div>
+    <div class="match-grid">
+      <div class="col" id="colL" style="display:flex;flex-direction:column;gap:10px">${left.map(p => `<button class="mbtn" data-id="${p.id}" data-side="l">${p.en}</button>`).join('')}</div>
+      <div class="col" id="colR" style="display:flex;flex-direction:column;gap:10px">${right.map(p => `<button class="mbtn" data-id="${p.id}" data-side="r">${p.tr}</button>`).join('')}</div>
+    </div>
+    <div class="feedback" id="fb"></div>`;
+  $('content').querySelectorAll('.mbtn').forEach(b => b.onclick = () => {
+    if (b.classList.contains('done')) return;
+    const id = +b.dataset.id;
+    if (b.dataset.side === 'l') {
+      $('content').querySelectorAll('[data-side="l"]').forEach(x => x.classList.remove('sel'));
+      b.classList.add('sel'); selL = id;
+    } else {
+      $('content').querySelectorAll('[data-side="r"]').forEach(x => x.classList.remove('sel'));
+      b.classList.add('sel'); selR = id;
+    }
+    if (selL !== null && selR !== null) {
+      const lb = $('content').querySelector(`[data-side="l"][data-id="${selL}"]`);
+      const rb = $('content').querySelector(`[data-side="r"][data-id="${selR}"]`);
+      if (selL === selR) {
+        [lb, rb].forEach(x => { x.classList.remove('sel'); x.classList.add('done'); });
+        found++; addScore(1); markLearned(DICT.find(w => w.en === lb.textContent.trim()) || {en: lb.textContent.trim()});
+        $('fb').textContent = '✓';
+        $('fb').className = 'feedback ok';
+        if (found === pairs.length) {
+          $('fb').innerHTML = `<div class="feedback ok">${t('allDone')}</div>
+            <button class="btn filled" id="nx" style="margin-top:12px;width:100%">${t('next')}</button>`;
+          $('nx').onclick = render;
+        }
+      } else {
+        [lb, rb].forEach(x => { x.classList.add('bad'); setTimeout(() => x.classList.remove('bad', 'sel'), 400); });
       }
-    });
-  }
-
-  // ============ ТЕСТ С ВЫБОРОМ ============
-  function renderQuiz() {
-    const w = pick(WORDS);
-    st.cur = w;
-    st.opts = shuffle([w, ...distractors(w)]);
-    st.answered = false;
-    $('main').innerHTML = `
-      <div class="question">${t('quizQ').replace('{w}', w.en)}</div>
-      <div id="opts">${st.opts.map((o, i) =>
-        `<button class="opt" onclick="answerChoice(${i})">${o[S.tgt]}</button>`).join('')}</div>
-      <div class="row"><button class="btn" onclick="renderQuiz()">${t('next')}</button></div>`;
-  }
-
-  function answerChoice(i) {
-    if (st.answered) return;
-    st.answered = true;
-    const btns = document.querySelectorAll('#opts .opt');
-    const right = st.opts.indexOf(st.cur);
-    if (i === right) {
-      btns[i].classList.add('correct');
-      addScore(15);
-      learn(st.cur.en);
-    } else {
-      btns[i].classList.add('wrong');
-      btns[right].classList.add('correct');
+      selL = null; selR = null;
     }
-  }
+  });
+}
 
-  // ============ ВВОД ПЕРЕВОДА ============
-  function renderType() {
-    const w = pick(WORDS);
-    st.cur = w;
-    st.answered = false;
-    $('main').innerHTML = `
-      <div class="question">${t('typeQ').replace('{w}', w[S.tgt])}</div>
-      <input type="text" id="inp" autocomplete="off" autocapitalize="none" spellcheck="false"
-        placeholder="${t('typePh')}" onkeydown="if(event.key==='Enter')typeAction()">
-      <div class="feedback" id="fb"></div>
-      <div class="row">
-        <button class="btn btn-sec" onclick="renderType()">${t('skip')}</button>
-        <button class="btn" id="act" onclick="typeAction()">${t('check')}</button>
-      </div>`;
-  }
-
-  function typeAction() {
-    if (st.answered) { renderType(); return; }
-    const v = $('inp').value.trim().toLowerCase();
-    if (!v) return;
-    st.answered = true;
-    if (v === st.cur.en) {
-      $('fb').innerHTML = `<span class="ok">${t('ok')}</span>`;
-      addScore(15);
-      learn(st.cur.en);
-    } else {
-      $('fb').innerHTML = `<span class="bad">${t('bad')} ${st.cur.en}</span>`;
-    }
-    $('inp').disabled = true;
-    $('act').textContent = t('next');
-  }
-
-  // ============ СОПОСТАВЛЕНИЕ ПАР ============
-  function renderMatch() {
-    const set = shuffle(WORDS).slice(0, 5);
-    st.pairs = set;
-    st.left = shuffle(set);
-    st.right = shuffle(set);
-    st.selE = null;
-    st.selT = null;
-    st.matched = 0;
-    $('main').innerHTML = `
-      <p class="question small">${t('matchHint')}</p>
-      <div class="grid">
-        <div id="colE">${st.left.map((w, i) =>
-          `<button class="tile" data-i="${i}" onclick="matchPick('E',${i})">${w.en}</button>`).join('')}</div>
-        <div id="colT">${st.right.map((w, i) =>
-          `<button class="tile" data-i="${i}" onclick="matchPick('T',${i})">${w[S.tgt]}</button>`).join('')}</div>
-      </div>
-      <div class="feedback" id="fb"></div>`;
-  }
-
-  function matchPick(side, i) {
-    const col = `#col${side}`;
-    const el = document.querySelector(`${col} [data-i="${i}"]`);
-    if (el.classList.contains('done')) return;
-    document.querySelectorAll(`${col} .tile`).forEach(b => b.classList.remove('sel'));
-    el.classList.add('sel');
-    if (side === 'E') st.selE = i; else st.selT = i;
-    if (st.selE === null || st.selT === null) return;
-
-    const eE = document.querySelector(`#colE [data-i="${st.selE}"]`);
-    const eT = document.querySelector(`#colT [data-i="${st.selT}"]`);
-    if (st.left[st.selE] === st.right[st.selT]) {
-      eE.classList.replace('sel', 'done');
-      eT.classList.replace('sel', 'done');
-      learn(st.left[st.selE].en);
-      addScore(5);
-      st.matched++;
-      if (st.matched === st.pairs.length) {
-        $('fb').innerHTML = `<span class="ok">${t('roundDone')}</span>
-          <div class="row"><button class="btn" onclick="renderMatch()">${t('restart')}</button></div>`;
-      }
-    } else {
-      eE.classList.add('wrong');
-      eT.classList.add('wrong');
-      setTimeout(() => { [eE, eT].forEach(x => x.classList.remove('wrong', 'sel')); }, 600);
-    }
-    st.selE = null;
-    st.selT = null;
-  }
-
-  // ============ СБОРКА СЛОВА ИЗ БУКВ ============
-  function renderScramble() {
-    const w = pick(WORDS);
-    let order = shuffle([...w.en]);
-    while (order.join('') === w.en && w.en.length > 1) order = shuffle(order);
-    st.cur = w;
-    st.letters = order;
-    st.typed = [];
-    $('main').innerHTML = `
-      <div class="question">${w[S.tgt]}</div>
-      <p class="hint dark">${t('scrHint')}</p>
-      <div class="answer" id="ans"></div>
-      <div class="letters">${order.map((c, i) =>
-        `<button class="tile" data-i="${i}" onclick="scrPick(${i})">${c}</button>`).join('')}</div>
-      <div class="feedback" id="fb"></div>
-      <div class="row">
-        <button class="btn btn-sec" onclick="scrClear()">${t('clear')}</button>
-        <button class="btn" onclick="scrCheck()">${t('check')}</button>
-      </div>`;
-  }
-
-  function scrPick(i) {
-    const el = document.querySelector(`#main .letters [data-i="${i}"]`);
-    if (el.classList.contains('done')) return;
-    el.classList.add('done');
-    st.typed.push(i);
-    showAns();
-  }
-
-  function showAns() {
-    $('ans').textContent = st.typed.map(j => st.letters[j]).join('');
-  }
-
-  function scrClear() {
-    st.typed = [];
-    showAns();
-    $('fb').textContent = '';
-    document.querySelectorAll('#main .letters .tile').forEach(b => b.classList.remove('done'));
-  }
-
-  function scrCheck() {
-    const v = st.typed.map(j => st.letters[j]).join('');
-    if (v === st.cur.en) {
-      $('fb').innerHTML = `<span class="ok">${t('ok')}</span>`;
-      addScore(10);
-      learn(st.cur.en);
-      setTimeout(() => { if (tab === 'scramble') renderScramble(); }, 900);
-    } else {
-      $('fb').innerHTML = `<span class="bad">${t('bad')} ${st.cur.en}</span>`;
-    }
-  }
-
-  // ============ АУДИРОВАНИЕ ============
-  function renderListen() {
-    const w = pick(WORDS);
-    st.cur = w;
-    st.opts = shuffle([w, ...distractors(w)]);
-    st.answered = false;
-    $('main').innerHTML = `
-      <button class="speak" onclick="speak('${w.en}')">🔊 ${t('speak')}</button>
-      <div id="opts">${st.opts.map((o, i) =>
-        `<button class="opt" onclick="answerChoice(${i})">${o[S.tgt]}</button>`).join('')}</div>
-      <div class="row"><button class="btn" onclick="renderListen()">${t('next')}</button></div>`;
-    speak(w.en);
-  }
-
-  // ============ ИНИЦИАЛИЗАЦИЯ ============
-  $('uiLang').onchange = e => { S.ui = e.target.value; save(); applyLang(); };
-  $('tgtLang').onchange = e => { S.tgt = e.target.value; save(); st = {}; applyLang(); };
-  applyLang();
-</script>
-</body>
-</html>
-
+/* ---------- Letters ---------- */
+function renderLetters() {
+  const w = randomWord();
+  let pool = shuffle(w.en.split('')).map(c => ({c, used: false}));
+  let built = [];
+  $('content').innerHTML = `
+    <div class="card"><div class="label">${t('lettersHint')}</div><div class="word">${w[target]}</div></div>
+    <div class="card"><div class="tiles slots" id="slots"></div></div>
+    <div class="card"><div class="tiles" id="pool"></div></div>
+    <button class="btn filled" id="chk">${t('check')}</button>
+    <div id="res"></div>`;
+  const draw = () => {
+    $('slots').innerHTML = built.map((i, k) => `<button class
